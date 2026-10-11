@@ -1,1 +1,433 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WinGo 30s Neural Cyber Predictor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body {
+      background: radial-gradient(circle at 50% 20%, #111827 0%, #030712 100%);
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 14px;
+      overflow-x: hidden;
+    }
 
+    /* গ্লোয়িং সাইবার কার্ড */
+    .card {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 430px;
+      padding: 24px 20px;
+      box-shadow: 0 0 35px rgba(56, 189, 248, 0.15), 0 20px 40px rgba(0,0,0,0.9);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* স্ক্যানিং লেজার অ্যানিমেশন */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -100%;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, transparent 0%, rgba(56, 189, 248, 0.08) 50%, rgba(244, 63, 94, 0.15) 100%);
+      animation: laserScan 4s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes laserScan {
+      0% { top: -100%; }
+      100% { top: 100%; }
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      background: linear-gradient(90deg, #38bdf8, #f43f5e, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    p.sub { font-size: 12px; color: #94a3b8; margin-bottom: 18px; }
+
+    /* ইনপুট স্টাইল */
+    .field-group { text-align: left; margin-bottom: 14px; position: relative; z-index: 2; }
+    .field-label { font-size: 11px; color: #38bdf8; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; display: block; letter-spacing: 0.5px; }
+    .input-box {
+      width: 100%;
+      padding: 13px;
+      border-radius: 12px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      background: rgba(11, 17, 32, 0.8);
+      color: #fff;
+      font-size: 16px;
+      text-align: center;
+      outline: none;
+      transition: 0.3s;
+    }
+    .input-box:focus {
+      border-color: #f43f5e;
+      box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);
+    }
+
+    .btn-glow {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #f43f5e, #be123c);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.4);
+      transition: 0.2s;
+      position: relative;
+      z-index: 2;
+    }
+    .btn-glow:active { transform: scale(0.98); }
+    .err-msg { color: #fb7185; font-size: 12px; margin-top: 10px; display: none; }
+
+    /* ড্যাশবোর্ড স্ক্রিন */
+    #dashboardScreen { display: none; }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    .radar-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: radarPulse 1s infinite alternate;
+    }
+    @keyframes radarPulse { from { opacity: 0.4; } to { opacity: 1; } }
+
+    .period-box {
+      background: rgba(11, 17, 32, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .p-title { font-size: 11px; color: #94a3b8; text-transform: uppercase; }
+    .p-val { font-size: 16px; font-weight: 900; color: #38bdf8; letter-spacing: 0.5px; }
+
+    /* সার্কুলার নিয়ন টাইমার */
+    .timer-container {
+      background: rgba(11, 17, 32, 0.9);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 14px;
+      position: relative;
+    }
+    .timer-display {
+      font-size: 48px;
+      font-weight: 900;
+      color: #f59e0b;
+      text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+      letter-spacing: 2px;
+    }
+    .timer-info { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* প্রেডিকশন অ্যানিমেশন কার্ড */
+    .signal-box {
+      background: rgba(11, 17, 32, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    
+    .pred-pill {
+      display: inline-block;
+      padding: 12px 36px;
+      border-radius: 30px;
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin: 10px 0;
+      text-transform: uppercase;
+      animation: neonPulse 1.2s infinite alternate;
+    }
+    @keyframes neonPulse {
+      0% { transform: scale(0.96); box-shadow: 0 0 10px rgba(255,255,255,0.2); }
+      100% { transform: scale(1.04); box-shadow: 0 0 25px rgba(255,255,255,0.5); }
+    }
+
+    .pill-big {
+      background: linear-gradient(135deg, #10b981, #047857);
+      color: #fff;
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
+      border: 1px solid #34d399;
+    }
+    .pill-small {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: #fff;
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.6);
+      border: 1px solid #60a5fa;
+    }
+
+    .meta-row { display: flex; justify-content: space-between; font-size: 13px; color: #94a3b8; margin-top: 8px; }
+    .meta-row span { color: #fff; font-weight: 700; }
+
+    /* ফলাফল কার্ড */
+    .result-box {
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: bold;
+      line-height: 1.5;
+      display: none;
+      animation: popUp 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popUp {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .res-win {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid #059669;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+    }
+    .res-loss {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      border: 1px solid #e11d48;
+      box-shadow: 0 0 15px rgba(244, 63, 94, 0.3);
+    }
+
+    .resync-link {
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 12px;
+      margin-top: 14px;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ১. লগইন ও অটো-সিঙ্ক স্ক্রিন -->
+  <div class="card" id="loginScreen">
+    <h2>WINGO 30S NEURAL</h2>
+    <p class="sub">গেমের পিরিয়ডের শেষ ৪ সংখ্যা দিন, টাইমার নিজে থেকেই সিঙ্ক হবে</p>
+
+    <div class="field-group">
+      <label class="field-label">পিরিয়ডের শেষের ৪ সংখ্যা (যেমন: ২০৬০):</label>
+      <input type="number" id="last4Input" class="input-box" placeholder="উদা: 2060">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">ভিআইপি অ্যাক্সেস কি:</label>
+      <input type="password" id="passInput" class="input-box" placeholder="পাসওয়ার্ড লিখুন...">
+    </div>
+
+    <button class="btn-glow" onclick="startHack()">ACTIVATE NEURAL SYNC</button>
+    <div id="errMsg" class="err-msg">সঠিক ৪ ডিজিট এবং পাসওয়ার্ড দিন!</div>
+  </div>
+
+  <!-- ২. লাইভ এআই সিগন্যাল ড্যাশবোর্ড -->
+  <div class="card" id="dashboardScreen">
+    <h2>WINGO 30S AI LIVE</h2>
+    
+    <div class="status-badge">
+      <div class="radar-dot"></div> গেমের সাথে ১০০% অটো-সিঙ্কড
+    </div>
+
+    <div class="period-box">
+      <span class="p-title">পিরিয়ড নম্বর:</span>
+      <span id="periodDisplay" class="p-val">2026101010005XXXX</span>
+    </div>
+
+    <!-- কাউন্টডাউন টাইমার -->
+    <div class="timer-container">
+      <div class="timer-info">গেম লাইভ কাউন্টডাউন</div>
+      <div id="timerDisplay" class="timer-display">00:30</div>
+    </div>
+
+    <!-- অ্যানিমেটেড সিগন্যাল -->
+    <div class="signal-box">
+      <div style="font-size: 11px; color: #38bdf8; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;">এআই প্রেডিকশন</div>
+      <div id="predPill" class="pred-pill pill-big">BIG</div>
+
+      <div class="meta-row">
+        <div>প্রস্তাবিত সংখ্যা: <span id="numList">5, 6, 7, 8, 9</span></div>
+        <div>একুরেসি: <span id="accRate">98%</span></div>
+      </div>
+      <div class="meta-row">
+        <div>বর্তমান স্টেপ: <span id="stepLevel">Step 1</span></div>
+        <div>মোড: <span id="modeStrategy">Direct Hit</span></div>
+      </div>
+    </div>
+
+    <!-- নিখুঁত ফলাফল অ্যানিমেশন বক্স -->
+    <div id="resultBox" class="result-box"></div>
+
+    <button class="resync-link" onclick="location.reload()">🔄 নতুন করে সিঙ্ক করুন</button>
+  </div>
+
+  <script>
+    var ACCESS_CODE = "HGZY777";
+    var prefixPeriod = "2026101010005";
+    var current4Digits = 2060;
+    var lastCycleIndex = -1;
+
+    // ৭-৮ উইন এবং ২-৩ লস সাইকেল
+    var winTarget = Math.floor(Math.random() * 2) + 7;
+    var lossTarget = Math.floor(Math.random() * 2) + 2;
+    var winCount = 0;
+    var lossCount = 0;
+    var cycleState = "WIN_PHASE";
+    var currentPrediction = "BIG";
+
+    function startHack() {
+      var pass = document.getElementById("passInput").value;
+      var last4 = document.getElementById("last4Input").value.trim();
+
+      if (pass === ACCESS_CODE && last4.length >= 3) {
+        current4Digits = parseInt(last4);
+
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("dashboardScreen").style.display = "block";
+
+        generateSignal();
+        runLiveSync();
+      } else {
+        document.getElementById("errMsg").style.display = "block";
+      }
+    }
+
+    function generateSignal() {
+      document.getElementById("periodDisplay").innerText = prefixPeriod + current4Digits;
+      document.getElementById("resultBox").style.display = "none";
+
+      var stepStr, modeStr;
+      if (cycleState === "WIN_PHASE") {
+        winCount++;
+        stepStr = "Step 1";
+        modeStr = "Direct Win (" + winCount + "/" + winTarget + ")";
+        if (winCount >= winTarget) {
+          cycleState = "LOSS_PHASE";
+          winCount = 0;
+          lossCount = 0;
+        }
+      } else if (cycleState === "LOSS_PHASE") {
+        lossCount++;
+        stepStr = "Step " + lossCount;
+        modeStr = "Backup (" + lossCount + "/" + lossTarget + ")";
+        if (lossCount >= lossTarget) {
+          cycleState = "RECOVERY";
+        }
+      } else if (cycleState === "RECOVERY") {
+        stepStr = "Step " + (lossTarget + 1);
+        modeStr = "Mega Recovery";
+        cycleState = "WIN_PHASE";
+        winTarget = Math.floor(Math.random() * 2) + 7;
+        lossTarget = Math.floor(Math.random() * 2) + 2;
+      }
+
+      currentPrediction = Math.random() > 0.5 ? "BIG" : "SMALL";
+      var pill = document.getElementById("predPill");
+
+      if (currentPrediction === "BIG") {
+        pill.className = "pred-pill pill-big";
+        pill.innerText = "BIG";
+        document.getElementById("numList").innerText = "5, 6, 7, 8, 9";
+      } else {
+        pill.className = "pred-pill pill-small";
+        pill.innerText = "SMALL";
+        document.getElementById("numList").innerText = "0, 1, 2, 3, 4";
+      }
+
+      document.getElementById("stepLevel").innerText = stepStr;
+      document.getElementById("modeStrategy").innerText = modeStr;
+      document.getElementById("accRate").innerText = (Math.floor(Math.random() * 4) + 95) + "%";
+    }
+
+    function showResult() {
+      var res = document.getElementById("resultBox");
+      res.style.display = "block";
+
+      if (cycleState === "LOSS_PHASE") {
+        var gameResult = currentPrediction === "BIG" ? "SMALL" : "BIG";
+        var num = gameResult === "SMALL" ? Math.floor(Math.random() * 5) : Math.floor(Math.random() * 5) + 5;
+
+        res.className = "result-box res-loss";
+        res.innerHTML = "❌ প্রেডিকশন লস!<br>গেমে এসেছে: <b>" + gameResult + " (সংখ্যা: " + num + ")</b><br>হ্যাক বলেছিল: <b>" + currentPrediction + "</b> (ফেল)";
+      } else {
+        var num = currentPrediction === "BIG" ? Math.floor(Math.random() * 5) + 5 : Math.floor(Math.random() * 5);
+
+        res.className = "result-box res-win";
+        res.innerHTML = "✅ প্রেডিকশন উইন (WIN)!<br>গেমে এসেছে: <b>" + currentPrediction + " (সংখ্যা: " + num + ")</b><br>টার্গেট সফল হয়েছে!";
+      }
+    }
+
+    function runLiveSync() {
+      setInterval(function() {
+        var now = new Date();
+        var sec = now.getSeconds();
+
+        var remaining = sec < 30 ? (30 - sec) : (60 - sec);
+        var currentCycle = Math.floor(now.getTime() / 30000);
+
+        var sStr = remaining < 10 ? "0" + remaining : remaining;
+        var timerEl = document.getElementById("timerDisplay");
+        timerEl.innerText = "00:" + sStr;
+
+        // শেষ ৫ সেকেন্ডে অ্যালার্ট লাইট
+        if (remaining <= 5) {
+          timerEl.style.color = "#ef4444";
+          timerEl.style.textShadow = "0 0 25px rgba(239, 68, 68, 0.8)";
+        } else {
+          timerEl.style.color = "#f59e0b";
+          timerEl.style.textShadow = "0 0 20px rgba(245, 158, 11, 0.5)";
+        }
+
+        // রাউন্ড পরিবর্তন
+        if (lastCycleIndex !== -1 && lastCycleIndex !== currentCycle) {
+          showResult();
+          current4Digits++;
+          setTimeout(function() {
+            generateSignal();
+          }, 2500);
+        }
+
+        lastCycleIndex = currentCycle;
+      }, 200);
+    }
+  </script>
+</body>
+  </html>

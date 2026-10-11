@@ -61,7 +61,7 @@
     }
     p.sub { font-size: 12px; color: #94a3b8; margin-bottom: 18px; }
 
-    /* ইনপুট স্টাইল */
+    /* ইনপুট ফিল্ড */
     .field-group { text-align: left; margin-bottom: 14px; position: relative; z-index: 2; }
     .field-label { font-size: 11px; color: #38bdf8; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; display: block; letter-spacing: 0.5px; }
     .input-box {
@@ -140,7 +140,7 @@
     .p-title { font-size: 11px; color: #94a3b8; text-transform: uppercase; }
     .p-val { font-size: 16px; font-weight: 900; color: #38bdf8; letter-spacing: 0.5px; }
 
-    /* সার্কুলার নিয়ন টাইমার */
+    /* কাউন্টডাউন টাইমার */
     .timer-container {
       background: rgba(11, 17, 32, 0.9);
       border: 1px solid rgba(245, 158, 11, 0.3);
@@ -158,7 +158,7 @@
     }
     .timer-info { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
 
-    /* প্রেডিকশন অ্যানিমেশন কার্ড */
+    /* প্রেডিকশন কার্ড */
     .signal-box {
       background: rgba(11, 17, 32, 0.9);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -200,7 +200,7 @@
     .meta-row { display: flex; justify-content: space-between; font-size: 13px; color: #94a3b8; margin-top: 8px; }
     .meta-row span { color: #fff; font-weight: 700; }
 
-    /* ফলাফল কার্ড */
+    /* ফলাফল বক্স */
     .result-box {
       padding: 14px;
       border-radius: 14px;
@@ -240,18 +240,18 @@
 </head>
 <body>
 
-  <!-- ১. লগইন ও অটো-সিঙ্ক স্ক্রিন -->
+  <!-- ১. লগইন স্ক্রিন (জিরো সাপোর্টসহ) -->
   <div class="card" id="loginScreen">
     <h2>WINGO 30S NEURAL</h2>
-    <p class="sub">গেমের পিরিয়ডের শেষ ৪ সংখ্যা দিন, টাইমার নিজে থেকেই সিঙ্ক হবে</p>
+    <p class="sub">গেমের পিরিয়ডের শেষ ৪ সংখ্যা দিন (যেমন: 0250 বা 2060)</p>
 
     <div class="field-group">
-      <label class="field-label">পিরিয়ডের শেষের ৪ সংখ্যা (যেমন: ২০৬০):</label>
-      <input type="number" id="last4Input" class="input-box" placeholder="উদা: 2060">
+      <label class="field-label">পিরিয়ডের শেষের ৪ সংখ্যা:</label>
+      <input type="text" id="last4Input" class="input-box" placeholder="উদা: 0250" maxlength="4" inputmode="numeric">
     </div>
 
     <div class="field-group">
-      <label class="field-label">ভিআইপি অ্যাক্সেস কি:</label>
+      <label class="field-label">ভিআইপি পাসওয়ার্ড:</label>
       <input type="password" id="passInput" class="input-box" placeholder="পাসওয়ার্ড লিখুন...">
     </div>
 
@@ -259,7 +259,7 @@
     <div id="errMsg" class="err-msg">সঠিক ৪ ডিজিট এবং পাসওয়ার্ড দিন!</div>
   </div>
 
-  <!-- ২. লাইভ এআই সিগন্যাল ড্যাশবোর্ড -->
+  <!-- ২. লাইভ সিগন্যাল ড্যাশবোর্ড -->
   <div class="card" id="dashboardScreen">
     <h2>WINGO 30S AI LIVE</h2>
     
@@ -278,7 +278,7 @@
       <div id="timerDisplay" class="timer-display">00:30</div>
     </div>
 
-    <!-- অ্যানিমেটেড সিগন্যাল -->
+    <!-- প্রেডিকশন কার্ড -->
     <div class="signal-box">
       <div style="font-size: 11px; color: #38bdf8; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;">এআই প্রেডিকশন</div>
       <div id="predPill" class="pred-pill pill-big">BIG</div>
@@ -293,7 +293,7 @@
       </div>
     </div>
 
-    <!-- নিখুঁত ফলাফল অ্যানিমেশন বক্স -->
+    <!-- ফলাফল বক্স -->
     <div id="resultBox" class="result-box"></div>
 
     <button class="resync-link" onclick="location.reload()">🔄 নতুন করে সিঙ্ক করুন</button>
@@ -317,8 +317,9 @@
       var pass = document.getElementById("passInput").value;
       var last4 = document.getElementById("last4Input").value.trim();
 
-      if (pass === ACCESS_CODE && last4.length >= 3) {
-        current4Digits = parseInt(last4);
+      // ৪ ডিজিট ইনপুট নেওয়া নিশ্চিত করা (যার শুরুতে 0 থাকলেও গৃহীত হবে)
+      if (pass === ACCESS_CODE && last4.length === 4 && !isNaN(last4)) {
+        current4Digits = parseInt(last4, 10);
 
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("dashboardScreen").style.display = "block";
@@ -330,8 +331,13 @@
       }
     }
 
+    // ৪ ডিজিটের ফরম্যাট বজায় রাখার ফাংশন (যেমন: 0250)
+    function format4Digits(num) {
+      return String(num % 10000).padStart(4, '0');
+    }
+
     function generateSignal() {
-      document.getElementById("periodDisplay").innerText = prefixPeriod + current4Digits;
+      document.getElementById("periodDisplay").innerText = prefixPeriod + format4Digits(current4Digits);
       document.getElementById("resultBox").style.display = "none";
 
       var stepStr, modeStr;
@@ -407,7 +413,6 @@
         var timerEl = document.getElementById("timerDisplay");
         timerEl.innerText = "00:" + sStr;
 
-        // শেষ ৫ সেকেন্ডে অ্যালার্ট লাইট
         if (remaining <= 5) {
           timerEl.style.color = "#ef4444";
           timerEl.style.textShadow = "0 0 25px rgba(239, 68, 68, 0.8)";
@@ -416,7 +421,6 @@
           timerEl.style.textShadow = "0 0 20px rgba(245, 158, 11, 0.5)";
         }
 
-        // রাউন্ড পরিবর্তন
         if (lastCycleIndex !== -1 && lastCycleIndex !== currentCycle) {
           showResult();
           current4Digits++;
@@ -430,4 +434,4 @@
     }
   </script>
 </body>
-  </html>
+</html>
